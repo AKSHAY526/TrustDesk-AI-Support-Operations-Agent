@@ -1,0 +1,13 @@
+# Core application
+fastapi==0.141.1
+uvicorn[standard]==0.54.0
+httpx==0.28.1
+numpy==2.5.3
+
+# Semantic half of hybrid retrieval.
+# Optional at runtime: the app falls back to a local hashing embedder if this
+# is not installed (see app/embeddings.py and README "Known limitations").
+sentence-transformers==6.1.0
+
+# Tests
+pytest==9.1.1
