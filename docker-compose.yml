@@ -1,0 +1,13 @@
+services:
+  trustdesk:
+    build: .
+    image: trustdesk:latest
+    ports:
+      - "8000:8000"
+    # Model settings and tokens. Optional: without .env the app uses the offline stand-in.
+    env_file:
+      - path: .env
+        required: false
+    # Lets the container reach Ollama running on this machine.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
