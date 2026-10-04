@@ -1,0 +1,625 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TrustDesk - Support Console</title>
+<style>
+  :root {
+    --ink: #1f2933;
+    --muted: #61707d;
+    --line: #dbe1e8;
+    --bg: #f5f7fa;
+    --panel: #ffffff;
+    --accent: #11569c;
+    --accent-soft: #e9f0f9;
+    --ok: #1c7c48;
+    --warn: #8a5300;
+    --danger: #a32020;
+    --radius: 8px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font: 14px/1.5 "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+  }
+  header {
+    background: var(--panel);
+    border-bottom: 1px solid var(--line);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  header h1 { font-size: 17px; margin: 0; }
+  header .sub { color: var(--muted); font-size: 12px; }
+  .grow { flex: 1; }
+  label { font-size: 12px; color: var(--muted); }
+  select, input[type=text] {
+    font: inherit; padding: 5px 8px; border: 1px solid var(--line);
+    border-radius: 6px; background: #fff; color: var(--ink);
+  }
+  button {
+    font: inherit; padding: 6px 12px; border-radius: 6px; cursor: pointer;
+    border: 1px solid var(--accent); background: var(--accent); color: #fff;
+  }
+  button.secondary { background: #fff; color: var(--accent); }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  button.small { padding: 4px 9px; font-size: 12px; }
+  main {
+    display: grid; grid-template-columns: 300px 1fr; gap: 16px;
+    padding: 16px 20px; align-items: start;
+  }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+  .panel {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: var(--radius); margin-bottom: 16px;
+  }
+  .panel > h2 {
+    font-size: 13px; text-transform: uppercase; letter-spacing: .04em;
+    color: var(--accent); margin: 0; padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .panel > .body { padding: 14px; }
+  .queue { list-style: none; margin: 0; padding: 0; max-height: 70vh; overflow: auto; }
+  .queue li {
+    padding: 10px 14px; border-bottom: 1px solid var(--line); cursor: pointer;
+  }
+  .queue li:hover { background: var(--accent-soft); }
+  .queue li[aria-selected=true] { background: var(--accent-soft); border-left: 3px solid var(--accent); }
+  .queue .tid { font-weight: 600; font-size: 12px; }
+  .queue .subj { color: var(--muted); font-size: 12px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .kv { display: grid; grid-template-columns: 150px 1fr; gap: 4px 12px; font-size: 13px; }
+  .kv dt { color: var(--muted); }
+  .kv dd { margin: 0; }
+  .chip {
+    display: inline-block; padding: 2px 8px; border-radius: 999px;
+    font-size: 12px; background: var(--accent-soft); color: var(--accent);
+    border: 1px solid #c7d8ec;
+  }
+  .chip.ok { background: #e6f4ec; color: var(--ok); border-color: #b9dfc8; }
+  .chip.warn { background: #fdf2e0; color: var(--warn); border-color: #eccf9a; }
+  .chip.danger { background: #fbeaea; color: var(--danger); border-color: #edc0c0; }
+  pre.reply {
+    white-space: pre-wrap; background: #fbfcfd; border: 1px solid var(--line);
+    border-radius: 6px; padding: 12px; margin: 0; font: inherit;
+  }
+  pre.ticket-body {
+    white-space: pre-wrap; background: #fbfcfd; border: 1px dashed var(--line);
+    border-radius: 6px; padding: 10px; margin: 0; font: 13px/1.5 inherit;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; }
+  .empty { color: var(--muted); font-style: italic; }
+  .muted { color: var(--muted); }
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .metric { border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; }
+  .metric .n { font-size: 18px; font-weight: 600; }
+  .metric .l { font-size: 11px; color: var(--muted); }
+  #toast {
+    position: fixed; right: 16px; bottom: 16px; max-width: 380px;
+    background: var(--ink); color: #fff; padding: 10px 14px; border-radius: 6px;
+    display: none;
+  }
+  .note { font-size: 12px; color: var(--muted); margin-top: 8px; }
+  td .note { margin-top: 4px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>TrustDesk</h1>
+    <div class="sub">AI Support Operations Agent</div>
+  </div>
+  <div class="grow"></div>
+  <div class="row">
+    <label for="role">Signed in as</label>
+    <select id="role" aria-label="Signed in as">
+      <option value="demo-agent-token" data-role="support_agent">Support agent</option>
+      <option value="demo-manager-token" data-role="support_manager">Support manager</option>
+      <option value="demo-admin-token" data-role="admin">Admin</option>
+    </select>
+    <span id="roleHint" class="muted"></span>
+    <span id="health" class="muted"></span>
+  </div>
+</header>
+
+<main>
+  <div>
+    <section class="panel" data-roles="support_manager admin">
+      <h2>Waiting for approval</h2>
+      <ul class="queue" id="pending"><li class="empty">Nothing is waiting for approval.</li></ul>
+    </section>
+
+    <section class="panel">
+      <h2>Ticket queue</h2>
+      <ul class="queue" id="queue"><li class="empty">Loading…</li></ul>
+    </section>
+
+    <section class="panel">
+      <h2>Policy search</h2>
+      <div class="body">
+        <div class="row">
+          <input type="text" id="kbq" placeholder="e.g. damaged item replacement" style="flex:1" />
+          <button class="secondary small" id="kbgo">Search</button>
+        </div>
+        <div id="kbres" class="note">Searches keyword and meaning together.</div>
+      </div>
+    </section>
+  </div>
+
+  <div>
+    <section class="panel" id="ticketPanel">
+      <h2>Ticket</h2>
+      <div class="body" id="ticketBody"><p class="empty">Select a ticket from the queue.</p></div>
+    </section>
+
+    <section class="panel">
+      <h2>AI workflow</h2>
+      <div class="body">
+        <div class="row">
+          <button id="btnTriage" disabled>Run triage</button>
+          <button id="btnDraft" class="secondary" disabled>Generate reply</button>
+        </div>
+        <div id="triageOut" style="margin-top:12px"></div>
+        <div id="draftOut" style="margin-top:12px"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Actions and approval</h2>
+      <div class="body" id="actionsOut"><p class="empty">No actions yet for this ticket.</p></div>
+    </section>
+
+    <section class="panel" data-roles="admin">
+      <h2>Evaluation</h2>
+      <div class="body">
+        <div class="row">
+          <button id="btnEval" class="secondary">Run evaluation</button>
+          <span class="muted">Runs the eight eval cases.</span>
+        </div>
+        <div id="evalOut" style="margin-top:12px"></div>
+      </div>
+    </section>
+
+    <section class="panel" data-roles="support_manager admin">
+      <h2>Policy gaps</h2>
+      <div class="body">
+        <div class="row">
+          <button id="btnGaps" class="secondary small">Refresh</button>
+          <span class="muted">Questions the agent could not answer.</span>
+        </div>
+        <div id="gapsOut" style="margin-top:10px"></div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+
+// Ticket text can contain injection payloads, so escape everything we render.
+const esc = (value) => String(value ?? "")
+  .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
+  .replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+
+const state = { ticketId: null, draft: null };
+const el = (id) => document.getElementById(id);
+const token = () => el("role").value;
+const role = () => el("role").selectedOptions[0].dataset.role;
+const isApprover = () => role() === "support_manager" || role() === "admin";
+const isAdmin = () => role() === "admin";
+
+const ROLE_HINTS = {
+  support_agent: "Triage, reply and request actions. Approvals go to a manager.",
+  support_manager: "Agent tools, plus approvals and policy gaps.",
+  admin: "Everything, including evaluations.",
+};
+
+// Each role sees only the panels it can use. The API refuses the rest anyway.
+function applyRole() {
+  document.querySelectorAll("[data-roles]").forEach((node) => {
+    node.hidden = !node.dataset.roles.split(" ").includes(role());
+  });
+  el("roleHint").textContent = ROLE_HINTS[role()] || "";
+}
+
+function toast(message, ms = 4000) {
+  const node = el("toast");
+  node.textContent = message;
+  node.style.display = "block";
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => (node.style.display = "none"), ms);
+}
+
+async function api(path, options = {}) {
+  const response = await fetch(path, {
+    ...options,
+    headers: {
+      "Authorization": "Bearer " + token(),
+      ...(options.body ? { "Content-Type": "application/json" } : {}),
+      ...(options.headers || {}),
+    },
+  });
+  const text = await response.text();
+  const payload = text ? JSON.parse(text) : null;
+  if (!response.ok) {
+    const detail = payload && payload.detail;
+    const message = detail && detail.message ? detail.message
+      : detail && detail.error ? detail.error
+      : `Request failed (${response.status})`;
+    throw new Error(message);
+  }
+  return payload;
+}
+
+function percent(value) { return (value * 100).toFixed(0) + "%"; }
+
+// What the tool produced, e.g. replacement_order_id, investigation_id or coupon_code.
+function resultId(result) {
+  const entry = Object.entries(result)
+    .find(([key]) => /_(id|code)$/.test(key) && key !== "ticket_id");
+  return entry ? entry[1] : "done";
+}
+
+function statusChip(status) {
+  const map = {
+    drafted: "ok", executed: "ok", approved: "ok",
+    needs_info: "warn", approval_required: "warn",
+    refused: "danger", rejected: "danger", escalated: "warn", failed: "danger",
+  };
+  return `<span class="chip ${map[status] || ""}">${esc(status)}</span>`;
+}
+
+// Plain-language line under an action's status.
+function actionNote(a) {
+  const review = (a.approvals || []).at(-1);
+  if (a.status === "approval_required") {
+    return isApprover() ? "Waiting for approval" : "Sent for manager approval";
+  }
+  if (a.status === "executed" && !a.requires_human_approval) {
+    return "Approval not required: low-risk action, run automatically";
+  }
+  if (a.status === "executed") return review ? `Approved by ${review.reviewer_id}` : "Approved";
+  if (a.status === "rejected") {
+    return review
+      ? `Rejected by ${review.reviewer_id}${review.reason ? `: ${review.reason}` : ""}`
+      : "Rejected";
+  }
+  if (a.status === "failed") return "Failed while running";
+  return "";
+}
+
+// ---- health -----------------------------------------------------------------
+
+async function loadHealth() {
+  try {
+    const h = await api("/health");
+    el("health").textContent = `model: ${h.model} · embedder: ${h.embedder.split("/").pop()}`;
+  } catch { el("health").textContent = ""; }
+}
+
+// ---- queue ------------------------------------------------------------------
+
+async function loadQueue() {
+  try {
+    const tickets = await api("/tickets");
+    el("queue").innerHTML = tickets.map((t) => `
+      <li data-id="${esc(t.ticket_id)}" aria-selected="${t.ticket_id === state.ticketId}">
+        <div class="tid">${esc(t.ticket_id)} <span class="muted">· ${esc(t.channel)}</span></div>
+        <div class="subj">${esc(t.subject)}</div>
+      </li>`).join("");
+    el("queue").querySelectorAll("li[data-id]").forEach((li) =>
+      li.addEventListener("click", () => selectTicket(li.dataset.id)));
+  } catch (error) {
+    el("queue").innerHTML = `<li class="empty">${esc(error.message)}</li>`;
+  }
+}
+
+// ---- ticket -----------------------------------------------------------------
+
+async function selectTicket(ticketId) {
+  state.ticketId = ticketId;
+  state.draft = null;
+  el("triageOut").innerHTML = "";
+  el("draftOut").innerHTML = "";
+  el("btnTriage").disabled = false;
+  el("btnDraft").disabled = false;
+  await loadQueue();
+  await loadTicket();
+  await loadActions();
+}
+
+async function loadTicket() {
+  try {
+    const data = await api(`/tickets/${state.ticketId}`);
+    const t = data.ticket, c = data.customer || {}, o = data.order || {};
+    el("ticketBody").innerHTML = `
+      <div class="row" style="justify-content:space-between">
+        <strong>${esc(t.subject)}</strong>
+        <span class="chip">${esc(t.ticket_id)}</span>
+      </div>
+      <pre class="ticket-body" style="margin:10px 0">${esc(t.body)}</pre>
+      <dl class="kv">
+        <dt>Customer</dt><dd>${esc(c.name)} · ${esc(c.tier)} tier · ${c.verified ? "verified" : "not verified"}</dd>
+        <dt>Order</dt><dd>${esc(o.order_id)} · ${esc(o.status)} · ${esc(o.currency)} ${esc(o.total)}</dd>
+        <dt>Placed / delivered</dt><dd>${esc(o.placed_at)} / ${esc(o.delivered_at) || "-"}</dd>
+        <dt>Return window ends</dt><dd>${esc(o.eligible_return_until) || "-"}</dd>
+        <dt>Raised</dt><dd>${esc(t.created_at)}</dd>
+      </dl>
+      ${data.triage ? `<div class="note">Last triage: ${esc(data.triage.category)} · ${esc(data.triage.priority)}</div>` : ""}`;
+  } catch (error) {
+    el("ticketBody").innerHTML = `<p class="empty">${esc(error.message)}</p>`;
+  }
+}
+
+// ---- triage and draft -------------------------------------------------------
+
+el("btnTriage").addEventListener("click", async () => {
+  el("btnTriage").disabled = true;
+  el("triageOut").innerHTML = `<span class="muted">Running triage…</span>`;
+  try {
+    const t = await api(`/tickets/${state.ticketId}/triage`, { method: "POST" });
+    const guard = t.guardrail || {};
+    el("triageOut").innerHTML = `
+      <div class="row">
+        <span class="chip">${esc(t.category)}</span>
+        <span class="chip ${t.priority === "urgent" ? "danger" : t.priority === "high" ? "warn" : ""}">${esc(t.priority)}</span>
+        <span class="chip">${esc(t.sentiment)}</span>
+        ${t.should_escalate ? `<span class="chip warn">escalate</span>` : `<span class="chip ok">no escalation</span>`}
+      </div>
+      <p style="margin:8px 0 0">${esc(t.reason_summary)}</p>
+      <div class="note">
+        Retrieved: ${t.retrieved_doc_ids.map((d) => esc(d)).join(", ") || "none"}<br />
+        Guardrails: ${guard.safe ? "clean" : esc((guard.kinds || []).join(", "))}
+        · checked by ${esc((guard.screened_by || []).join(", "))}<br />
+        Trace: ${esc(t.run_id)} · model ${esc(t.model)}
+      </div>`;
+  } catch (error) {
+    el("triageOut").innerHTML = `<p class="chip danger">${esc(error.message)}</p>`;
+  }
+  el("btnTriage").disabled = false;
+});
+
+el("btnDraft").addEventListener("click", async () => {
+  el("btnDraft").disabled = true;
+  el("draftOut").innerHTML = `<span class="muted">Generating reply…</span>`;
+  try {
+    const d = await api(`/tickets/${state.ticketId}/draft`, { method: "POST" });
+    state.draft = d;
+    const actions = d.recommended_actions || [];
+    el("draftOut").innerHTML = `
+      <div class="row">${statusChip(d.status)}
+        ${d.citations.length
+          ? d.citations.map((c) => `<span class="chip ok">${esc(c)}</span>`).join("")
+          : `<span class="chip warn">no citation</span>`}
+      </div>
+      <pre class="reply" style="margin-top:10px">${esc(d.body)}</pre>
+      ${d.escalation_reason ? `<div class="note">Escalation reason: ${esc(d.escalation_reason)}</div>` : ""}
+      ${actions.length ? `
+        <div style="margin-top:12px"><strong>Recommended</strong>
+          <table><thead><tr><th>Tool</th><th>Why</th><th></th></tr></thead><tbody>
+          ${actions.map((a, i) => `<tr>
+            <td><code>${esc(a.tool_name)}</code></td>
+            <td class="muted">${esc(a.reason)}</td>
+            <td><button class="small secondary" data-action-index="${i}">Request</button></td>
+          </tr>`).join("")}
+          </tbody></table>
+        </div>` : `<div class="note">No tool action recommended.</div>`}`;
+
+    el("draftOut").querySelectorAll("button[data-action-index]").forEach((button) =>
+      button.addEventListener("click", () => requestAction(actions[Number(button.dataset.actionIndex)])));
+  } catch (error) {
+    el("draftOut").innerHTML = `<p class="chip danger">${esc(error.message)}</p>`;
+  }
+  el("btnDraft").disabled = false;
+});
+
+// ---- actions ----------------------------------------------------------------
+
+async function requestAction(recommended) {
+  try {
+    const result = await api("/actions", {
+      method: "POST",
+      body: JSON.stringify({
+        ticket_id: state.ticketId,
+        tool_name: recommended.tool_name,
+        payload: recommended.payload,
+      }),
+    });
+    const status = result.action.status;
+    toast(result.replayed
+      ? "Already requested with that idempotency key, so nothing was duplicated."
+      : status === "approval_required" ? "Request sent for manager approval."
+      : status === "executed" ? "Approval not required for this low-risk action, so it ran straight away."
+      : `Action ${status.replace("_", " ")}.`);
+    await loadActions();
+    await loadPending();
+  } catch (error) {
+    toast(error.message, 6000);
+  }
+}
+
+async function loadActions() {
+  try {
+    const actions = await api(`/actions?ticket_id=${encodeURIComponent(state.ticketId)}`);
+    if (!actions.length) {
+      el("actionsOut").innerHTML = `<p class="empty">No actions yet for this ticket.</p>`;
+      return;
+    }
+    // Agents see the status only; Approve and Reject are for managers and admins.
+    const approver = isApprover();
+    el("actionsOut").innerHTML = `
+      <table><thead><tr>
+        <th>Tool</th><th>Status</th><th>Requested by</th><th>Result</th>${approver ? "<th></th>" : ""}
+      </tr></thead><tbody>
+      ${actions.map((a) => `<tr>
+        <td><code>${esc(a.tool_name)}</code><div class="note">${esc(a.idempotency_key)}</div></td>
+        <td>${statusChip(a.status)}<div class="note">${esc(actionNote(a))}</div></td>
+        <td class="muted">${esc(a.requested_by)}</td>
+        <td class="muted">${a.result ? esc(resultId(a.result)) : "-"}</td>
+        ${approver ? `<td>${a.status === "approval_required"
+          ? `<button class="small" data-approve="${esc(a.action_id)}">Approve</button>
+             <button class="small secondary" data-reject="${esc(a.action_id)}">Reject</button>`
+          : ""}</td>` : ""}
+      </tr>`).join("")}
+      </tbody></table>
+      <div class="note">${approver
+        ? "You can't approve an action you requested yourself."
+        : "Refunds, replacements, coupons and account locks wait for a support manager."}</div>`;
+
+    el("actionsOut").querySelectorAll("button[data-approve]").forEach((b) =>
+      b.addEventListener("click", () => decide(b.dataset.approve, "approved")));
+    el("actionsOut").querySelectorAll("button[data-reject]").forEach((b) =>
+      b.addEventListener("click", () => decide(b.dataset.reject, "rejected")));
+  } catch (error) {
+    el("actionsOut").innerHTML = `<p class="chip danger">${esc(error.message)}</p>`;
+  }
+}
+
+async function decide(actionId, decision) {
+  try {
+    const result = await api(`/actions/${actionId}/approve`, {
+      method: "POST",
+      body: JSON.stringify({ decision, reason: decision === "approved" ? "Verified by reviewer" : "Not supported by policy" }),
+    });
+    const status = result.action.status;
+    toast(result.replayed ? "Already executed; no second side effect."
+      : status === "executed" ? "Approved and executed."
+      : status === "rejected" ? "Rejected."
+      : `Action ${status}.`);
+    await loadActions();
+    await loadPending();
+  } catch (error) {
+    toast(error.message, 6000);
+  }
+}
+
+// ---- approval queue (managers and admins) -----------------------------------
+
+async function loadPending() {
+  if (!isApprover()) return;
+  try {
+    const pending = await api("/actions?status=approval_required");
+    el("pending").innerHTML = pending.length ? pending.map((a) => `
+      <li data-id="${esc(a.ticket_id)}">
+        <div class="tid">${esc(a.ticket_id)} <span class="muted">· ${esc(a.tool_name)}</span></div>
+        <div class="subj">${a.payload && a.payload.amount != null
+          ? `₹${esc(Number(a.payload.amount).toLocaleString("en-IN"))} · ` : ""}requested by ${esc(a.requested_by)}</div>
+      </li>`).join("") : `<li class="empty">Nothing is waiting for approval.</li>`;
+    el("pending").querySelectorAll("li[data-id]").forEach((li) =>
+      li.addEventListener("click", () => selectTicket(li.dataset.id)));
+  } catch (error) {
+    el("pending").innerHTML = `<li class="empty">${esc(error.message)}</li>`;
+  }
+}
+
+// ---- policy search ----------------------------------------------------------
+
+async function searchKb() {
+  const query = el("kbq").value.trim();
+  if (!query) return;
+  el("kbres").innerHTML = `<span class="muted">Searching…</span>`;
+  try {
+    const data = await api(`/kb/search?q=${encodeURIComponent(query)}`);
+    el("kbres").innerHTML = `
+      <div class="note">${data.covered
+        ? `<span class="chip ok">covered</span>`
+        : `<span class="chip warn">not covered</span>`} threshold ${data.threshold}</div>
+      <table style="margin-top:6px"><tbody>
+      ${data.results.map((r) => `<tr>
+        <td><strong>${esc(r.doc_id)}</strong>
+          <div class="note">${esc(r.heading)} · ${r.score} · ${esc(r.channels.join("+"))}</div></td>
+      </tr>`).join("")}
+      </tbody></table>`;
+  } catch (error) {
+    el("kbres").innerHTML = `<span class="chip danger">${esc(error.message)}</span>`;
+  }
+}
+el("kbgo").addEventListener("click", searchKb);
+el("kbq").addEventListener("keydown", (event) => { if (event.key === "Enter") searchKb(); });
+
+// ---- evaluation -------------------------------------------------------------
+
+el("btnEval").addEventListener("click", async () => {
+  el("btnEval").disabled = true;
+  el("evalOut").innerHTML = `<span class="muted">Running all cases…</span>`;
+  try {
+    const report = await api("/evals/run", { method: "POST" });
+    renderEval(report);
+  } catch (error) {
+    el("evalOut").innerHTML = `<p class="chip danger">${esc(error.message)}</p>`;
+  }
+  el("btnEval").disabled = false;
+});
+
+function renderEval(report) {
+  const m = report.metrics;
+  el("evalOut").innerHTML = `
+    <div class="metrics">
+      ${[["Triage accuracy", m.triage_accuracy], ["Citation coverage", m.citation_coverage],
+         ["Unsafe blocked", m.unsafe_action_block_rate], ["Escalation accuracy", m.escalation_accuracy],
+         ["Cases passed", m.cases_fully_passed]]
+        .map(([label, value]) => `<div class="metric"><div class="n">${percent(value)}</div><div class="l">${label}</div></div>`)
+        .join("")}
+    </div>
+    <table style="margin-top:12px"><thead><tr><th>Case</th><th>Result</th><th>Actions</th><th>Citations</th></tr></thead><tbody>
+    ${report.case_results.map((r) => `<tr>
+      <td>${esc(r.case_id)}</td>
+      <td>${r.passed ? `<span class="chip ok">pass</span>` : `<span class="chip danger">fail</span>`}</td>
+      <td class="muted">${esc((r.recommended_actions || []).join(", ")) || "none"}</td>
+      <td class="muted">${esc((r.citations || []).join(", ")) || "none"}</td>
+    </tr>`).join("")}
+    </tbody></table>
+    <div class="note">Model: ${esc(report.model)} · run ${esc(report.eval_run_id)}</div>`;
+}
+
+async function loadLatestEval() {
+  if (!isAdmin()) return;
+  try { renderEval(await api("/evals/latest")); } catch { /* none yet */ }
+}
+
+// ---- policy gaps ------------------------------------------------------------
+
+async function loadGaps() {
+  if (!isApprover()) return;
+  try {
+    const gaps = await api("/insights/policy-gaps?limit=12");
+    el("gapsOut").innerHTML = gaps.length ? `
+      <table><thead><tr><th>Ticket</th><th>Run</th><th>Reason</th></tr></thead><tbody>
+      ${gaps.map((g) => `<tr><td>${esc(g.ticket_id)}</td><td class="muted">${esc(g.run_type)}</td>
+        <td class="muted">${esc(g.escalation_reason)}</td></tr>`).join("")}
+      </tbody></table>` : `<p class="empty">No escalations recorded yet.</p>`;
+  } catch (error) {
+    el("gapsOut").innerHTML = `<p class="chip danger">${esc(error.message)}</p>`;
+  }
+}
+el("btnGaps").addEventListener("click", loadGaps);
+
+// ---- boot -------------------------------------------------------------------
+
+el("role").addEventListener("change", async () => {
+  applyRole();
+  await loadQueue();
+  await Promise.all([loadHealth(), loadPending(), loadLatestEval(), loadGaps()]);
+  if (state.ticketId) { await loadTicket(); await loadActions(); }
+});
+
+// The queue comes first so the page is usable even if a slower call lags behind.
+(async function boot() {
+  applyRole();
+  await loadQueue();
+  await Promise.all([loadHealth(), loadPending(), loadLatestEval(), loadGaps()]);
+})();
+</script>
+</body>
+</html>
