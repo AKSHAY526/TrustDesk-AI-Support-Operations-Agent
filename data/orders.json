@@ -1,0 +1,93 @@
+[
+  {
+    "order_id": "ord_5001",
+    "customer_id": "cus_1001",
+    "status": "delivered",
+    "placed_at": "2026-06-20",
+    "delivered_at": "2026-06-24",
+    "eligible_return_until": "2026-07-01",
+    "total": 8999,
+    "currency": "INR",
+    "payment_status": "paid",
+    "tracking_number": "BLUETRK10001",
+    "items": [
+      {"sku": "BG-AIRPODS-01", "name": "BlueBuds Air", "quantity": 1, "category": "audio", "final_sale": false}
+    ]
+  },
+  {
+    "order_id": "ord_5002",
+    "customer_id": "cus_1002",
+    "status": "in_transit",
+    "placed_at": "2026-06-22",
+    "delivered_at": null,
+    "eligible_return_until": null,
+    "total": 2499,
+    "currency": "INR",
+    "payment_status": "paid",
+    "tracking_number": "BLUETRK10002",
+    "items": [
+      {"sku": "BG-CASE-14", "name": "Phone Case Pro", "quantity": 1, "category": "accessory", "final_sale": false}
+    ]
+  },
+  {
+    "order_id": "ord_5003",
+    "customer_id": "cus_1003",
+    "status": "delivered",
+    "placed_at": "2026-06-10",
+    "delivered_at": "2026-06-14",
+    "eligible_return_until": "2026-06-21",
+    "total": 12999,
+    "currency": "INR",
+    "payment_status": "paid",
+    "tracking_number": "BLUETRK10003",
+    "items": [
+      {"sku": "BG-CAM-02", "name": "HomeCam Mini", "quantity": 1, "category": "camera", "final_sale": false}
+    ]
+  },
+  {
+    "order_id": "ord_5004",
+    "customer_id": "cus_1004",
+    "status": "delivered",
+    "placed_at": "2026-05-18",
+    "delivered_at": "2026-05-22",
+    "eligible_return_until": "2026-05-29",
+    "total": 4999,
+    "currency": "INR",
+    "payment_status": "paid",
+    "tracking_number": "BLUETRK10004",
+    "items": [
+      {"sku": "BG-SOFT-01", "name": "Cloud Backup Annual License", "quantity": 1, "category": "software", "final_sale": true}
+    ]
+  },
+  {
+    "order_id": "ord_5005",
+    "customer_id": "cus_1005",
+    "status": "delivered",
+    "placed_at": "2025-06-01",
+    "delivered_at": "2025-06-05",
+    "eligible_return_until": "2025-06-12",
+    "total": 34999,
+    "currency": "INR",
+    "payment_status": "paid",
+    "tracking_number": "BLUETRK10005",
+    "items": [
+      {"sku": "BG-TAB-10", "name": "BlueTab 10", "quantity": 1, "category": "tablet", "final_sale": false}
+    ]
+  },
+  {
+    "order_id": "ord_5006",
+    "customer_id": "cus_1006",
+    "status": "delivered",
+    "placed_at": "2026-06-28",
+    "delivered_at": "2026-06-30",
+    "eligible_return_until": "2026-07-07",
+    "total": 15999,
+    "currency": "INR",
+    "payment_status": "paid",
+    "tracking_number": "BLUETRK10006",
+    "items": [
+      {"sku": "BG-WATCH-04", "name": "BlueWatch Sport", "quantity": 1, "category": "wearable", "final_sale": false}
+    ]
+  }
+]
+

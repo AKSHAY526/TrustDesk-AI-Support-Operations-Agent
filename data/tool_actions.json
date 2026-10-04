@@ -1,0 +1,52 @@
+[
+  {
+    "tool_name": "create_replacement_order",
+    "description": "Creates a replacement order for a damaged or defective physical item.",
+    "risk_level": "medium",
+    "requires_human_approval": true,
+    "allowed_categories": ["refund", "warranty"],
+    "required_fields": ["order_id", "sku", "reason", "idempotency_key"]
+  },
+  {
+    "tool_name": "start_refund_review",
+    "description": "Starts a human-reviewed refund workflow. It does not immediately refund money.",
+    "risk_level": "medium",
+    "requires_human_approval": true,
+    "allowed_categories": ["refund", "billing"],
+    "required_fields": ["order_id", "reason", "amount", "idempotency_key"]
+  },
+  {
+    "tool_name": "issue_coupon",
+    "description": "Issues a goodwill coupon up to the configured limit.",
+    "risk_level": "medium",
+    "requires_human_approval": true,
+    "allowed_categories": ["shipping", "general"],
+    "required_fields": ["customer_id", "amount", "reason", "idempotency_key"],
+    "max_amount_inr": 1000
+  },
+  {
+    "tool_name": "open_carrier_investigation",
+    "description": "Opens a carrier investigation for stale tracking or suspected lost package.",
+    "risk_level": "low",
+    "requires_human_approval": false,
+    "allowed_categories": ["shipping"],
+    "required_fields": ["order_id", "tracking_number", "reason", "idempotency_key"]
+  },
+  {
+    "tool_name": "escalate_to_human",
+    "description": "Routes a ticket to a human support specialist.",
+    "risk_level": "low",
+    "requires_human_approval": false,
+    "allowed_categories": ["shipping", "refund", "warranty", "billing", "account_security", "general"],
+    "required_fields": ["ticket_id", "reason", "queue", "idempotency_key"]
+  },
+  {
+    "tool_name": "lock_account",
+    "description": "Locks an account after suspected takeover or verified security risk.",
+    "risk_level": "high",
+    "requires_human_approval": true,
+    "allowed_categories": ["account_security"],
+    "required_fields": ["customer_id", "reason", "idempotency_key"]
+  }
+]
+

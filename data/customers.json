@@ -1,0 +1,63 @@
+[
+  {
+    "customer_id": "cus_1001",
+    "name": "Aisha Rao",
+    "email": "aisha.rao@example.com",
+    "tier": "gold",
+    "country": "IN",
+    "created_at": "2024-05-14",
+    "verified": true,
+    "tags": ["loyal_customer", "high_lifetime_value"]
+  },
+  {
+    "customer_id": "cus_1002",
+    "name": "Rahul Mehta",
+    "email": "rahul.mehta@example.com",
+    "tier": "standard",
+    "country": "IN",
+    "created_at": "2025-02-10",
+    "verified": true,
+    "tags": []
+  },
+  {
+    "customer_id": "cus_1003",
+    "name": "Nisha Verma",
+    "email": "nisha.verma@example.com",
+    "tier": "silver",
+    "country": "IN",
+    "created_at": "2023-11-02",
+    "verified": false,
+    "tags": ["account_review"]
+  },
+  {
+    "customer_id": "cus_1004",
+    "name": "Vikram Sethi",
+    "email": "vikram.sethi@example.com",
+    "tier": "standard",
+    "country": "IN",
+    "created_at": "2025-09-21",
+    "verified": true,
+    "tags": ["new_customer"]
+  },
+  {
+    "customer_id": "cus_1005",
+    "name": "Fatima Khan",
+    "email": "fatima.khan@example.com",
+    "tier": "gold",
+    "country": "IN",
+    "created_at": "2022-04-18",
+    "verified": true,
+    "tags": ["loyal_customer"]
+  },
+  {
+    "customer_id": "cus_1006",
+    "name": "Arjun Patel",
+    "email": "arjun.patel@example.com",
+    "tier": "standard",
+    "country": "IN",
+    "created_at": "2024-12-05",
+    "verified": true,
+    "tags": []
+  }
+]
+
